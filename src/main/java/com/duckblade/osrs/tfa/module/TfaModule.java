@@ -3,6 +3,7 @@ package com.duckblade.osrs.tfa.module;
 import com.duckblade.osrs.tfa.TfaConfig;
 import com.duckblade.osrs.tfa.features.FadeDisabler;
 import com.duckblade.osrs.tfa.features.LobbyBoardHighlighter;
+import com.duckblade.osrs.tfa.features.bossplan.BossPlanBoardIcons;
 import com.duckblade.osrs.tfa.features.hporbs.HealthBarsOverlay;
 import com.duckblade.osrs.tfa.features.loot.LootLeftClickBankAll;
 import com.duckblade.osrs.tfa.features.loot.LootNoEarlySparkle;
@@ -30,6 +31,7 @@ public class TfaModule extends AbstractModule
 
 	@Provides
 	Set<PluginLifecycleComponent> lifecycleComponents(
+		BossPlanBoardIcons bossPlanBoardIcons,
 		FadeDisabler fadeDisabler,
 		HealthBarsOverlay healthBarsOverlay,
 		LobbyBoardHighlighter lobbyBoardHighlighter,
@@ -41,6 +43,7 @@ public class TfaModule extends AbstractModule
 	)
 	{
 		return ImmutableSet.of(
+			bossPlanBoardIcons,
 			fadeDisabler,
 			healthBarsOverlay,
 			lobbyBoardHighlighter,

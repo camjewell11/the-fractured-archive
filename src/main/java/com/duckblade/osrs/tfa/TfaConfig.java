@@ -1,5 +1,6 @@
 package com.duckblade.osrs.tfa;
 
+import com.duckblade.osrs.tfa.features.bossplan.PlannedBoss;
 import com.duckblade.osrs.tfa.features.hporbs.HpOrbMode;
 import com.duckblade.osrs.tfa.features.updatenotifier.UpdateNotifier;
 import net.runelite.client.config.Config;
@@ -30,6 +31,14 @@ public interface TfaConfig extends Config
 		closedByDefault = true
 	)
 	String SECTION_LOOT = "sectionLoot";
+
+	@ConfigSection(
+		name = "Boss Plan",
+		description = "Advertise which bosses your party intends to run on the lobby board.",
+		position = 2,
+		closedByDefault = true
+	)
+	String SECTION_BOSS_PLAN = "sectionBossPlan";
 
 	// Miscellaneous
 
@@ -105,6 +114,56 @@ public interface TfaConfig extends Config
 	default boolean lootNoEarlySparkle()
 	{
 		return false;
+	}
+
+	// Boss Plan
+
+	@ConfigItem(
+		keyName = "bossPlanBoardIcons",
+		name = "Show On Lobby Board",
+		description = "Shows parties' planned bosses on the lobby party finder board, in place of the mode.",
+		position = 0,
+		section = SECTION_BOSS_PLAN
+	)
+	default boolean bossPlanBoardIcons()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "bossPlan1",
+		name = "Boss 1",
+		description = "A boss your party intends to run, advertised on the lobby board while you lead a party.",
+		position = 1,
+		section = SECTION_BOSS_PLAN
+	)
+	default PlannedBoss bossPlan1()
+	{
+		return PlannedBoss.NONE;
+	}
+
+	@ConfigItem(
+		keyName = "bossPlan2",
+		name = "Boss 2",
+		description = "A boss your party intends to run, advertised on the lobby board while you lead a party.",
+		position = 2,
+		section = SECTION_BOSS_PLAN
+	)
+	default PlannedBoss bossPlan2()
+	{
+		return PlannedBoss.NONE;
+	}
+
+	@ConfigItem(
+		keyName = "bossPlan3",
+		name = "Boss 3",
+		description = "A boss your party intends to run, advertised on the lobby board while you lead a party.",
+		position = 3,
+		section = SECTION_BOSS_PLAN
+	)
+	default PlannedBoss bossPlan3()
+	{
+		return PlannedBoss.NONE;
 	}
 
 	// hidden
