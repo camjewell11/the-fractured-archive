@@ -3,6 +3,7 @@ package com.duckblade.osrs.tfa.features.bossplan;
 import com.duckblade.osrs.tfa.TfaConfig;
 import com.duckblade.osrs.tfa.module.PluginLifecycleComponent;
 import com.duckblade.osrs.tfa.util.RaidState;
+import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -14,13 +15,13 @@ import net.runelite.api.Client;
 import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.gameval.InterfaceID;
-import net.runelite.api.widgets.ItemQuantityMode;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetPositionMode;
 import net.runelite.api.widgets.WidgetType;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 
 @Slf4j
@@ -35,10 +36,17 @@ public class BossPlanBoardIcons
 	// row children are created by script10095, 0-8 are used by the game
 	private static final int ROW_CHILD_NAME = 2;
 	private static final int ROW_CHILD_MODE = 4;
-	private static final int ROW_CHILD_FIRST_ICON = 9;
+	private static final int ROW_CHILD_FIRST_TILE = 9;
+	private static final int ROW_CHILD_FIRST_ICON = 12;
 	private static final int MAX_ICONS = 3;
 
-	private static final int ICON_GAP = 2;
+	// icons are pre-scaled to fit the row and drawn at their native size
+	private static final int SPRITE_ID_BASE = -38_600;
+	private static final int ICON_SIZE = 18;
+	private static final int TILE_WIDTH = 22;
+	private static final int TILE_HEIGHT = 20;
+	private static final int TILE_GAP = 4;
+	private static final int TILE_COLOUR = 0x7d7058;
 
 	private final Client client;
 	private final ClientThread clientThread;
@@ -55,13 +63,28 @@ public class BossPlanBoardIcons
 	@Override
 	public void startUp()
 	{
-		needScanPartyList = true;
+		clientThread.invokeLater(() ->
+		{
+			for (PlannedBoss boss : PlannedBoss.values())
+			{
+				registerSprite(boss, ImageUtil.loadImageResource(BossPlanBoardIcons.class, boss.getIconFile()));
+			}
+			needScanPartyList = true;
+		});
 	}
 
 	@Override
 	public void shutDown()
 	{
-		clientThread.invokeLater(() -> scanPartyList(leader -> Collections.emptyList()));
+		clientThread.invokeLater(() ->
+		{
+			scanPartyList(leader -> Collections.emptyList());
+			for (PlannedBoss boss : PlannedBoss.values())
+			{
+				client.getSpriteOverrides().remove(spriteId(boss));
+			}
+			client.getWidgetSpriteCache().reset();
+		});
 	}
 
 	@Subscribe
@@ -90,6 +113,18 @@ public class BossPlanBoardIcons
 			scanPartyList(bossPlanSource::getPlan);
 			needScanPartyList = false;
 		}
+	}
+
+	private void registerSprite(PlannedBoss boss, BufferedImage image)
+	{
+		BufferedImage icon = ImageUtil.resizeImage(image, ICON_SIZE, ICON_SIZE);
+		client.getSpriteOverrides().put(spriteId(boss), ImageUtil.getImageSpritePixels(icon, client));
+		client.getWidgetSpriteCache().reset();
+	}
+
+	private static int spriteId(PlannedBoss boss)
+	{
+		return SPRITE_ID_BASE - boss.ordinal();
 	}
 
 	private void scanPartyList(Function<String, List<PlannedBoss>> planLookup)
@@ -123,38 +158,45 @@ public class BossPlanBoardIcons
 		mode.setHidden(!plan.isEmpty());
 
 		int count = Math.min(plan.size(), MAX_ICONS);
-		int iconHeight = row.getOriginalHeight();
-		int iconWidth = iconHeight * 36 / 32;
-		int fitWidth = (mode.getOriginalWidth() - ICON_GAP * (count - 1)) / Math.max(count, 1);
-		if (iconWidth > fitWidth)
-		{
-			iconWidth = fitWidth;
-			iconHeight = iconWidth * 32 / 36;
-		}
-
-		int x = mode.getOriginalX() + (mode.getOriginalWidth() - (iconWidth * count + ICON_GAP * (count - 1))) / 2;
+		int x = mode.getOriginalX() + (mode.getOriginalWidth() - (TILE_WIDTH * count + TILE_GAP * (count - 1))) / 2;
 		for (int i = 0; i < MAX_ICONS; i++)
 		{
-			if (i >= count)
+			if (i >= count || !client.getSpriteOverrides().containsKey(spriteId(plan.get(i))))
 			{
-				Widget stale = row.getChild(ROW_CHILD_FIRST_ICON + i);
-				if (stale != null)
-				{
-					stale.setHidden(true);
-				}
+				hideChild(row, ROW_CHILD_FIRST_TILE + i);
+				hideChild(row, ROW_CHILD_FIRST_ICON + i);
 				continue;
 			}
 
+			int tileX = x + i * (TILE_WIDTH + TILE_GAP);
+
+			Widget tile = row.createChild(ROW_CHILD_FIRST_TILE + i, WidgetType.RECTANGLE);
+			tile.setFilled(true);
+			tile.setTextColor(TILE_COLOUR);
+			place(tile, tileX, TILE_WIDTH, TILE_HEIGHT);
+
 			Widget icon = row.createChild(ROW_CHILD_FIRST_ICON + i, WidgetType.GRAPHIC);
-			icon.setItemId(plan.get(i).getIconItemId());
-			icon.setItemQuantityMode(ItemQuantityMode.NEVER);
-			icon.setBorderType(1);
-			icon.setOriginalX(x + i * (iconWidth + ICON_GAP));
-			icon.setOriginalY(0);
-			icon.setYPositionMode(WidgetPositionMode.ABSOLUTE_CENTER);
-			icon.setOriginalWidth(iconWidth);
-			icon.setOriginalHeight(iconHeight);
-			icon.revalidate();
+			icon.setSpriteId(spriteId(plan.get(i)));
+			place(icon, tileX + (TILE_WIDTH - ICON_SIZE) / 2, ICON_SIZE, ICON_SIZE);
+		}
+	}
+
+	private static void place(Widget w, int x, int width, int height)
+	{
+		w.setOriginalX(x);
+		w.setOriginalY(0);
+		w.setYPositionMode(WidgetPositionMode.ABSOLUTE_CENTER);
+		w.setOriginalWidth(width);
+		w.setOriginalHeight(height);
+		w.revalidate();
+	}
+
+	private static void hideChild(Widget row, int index)
+	{
+		Widget child = row.getChild(index);
+		if (child != null)
+		{
+			child.setHidden(true);
 		}
 	}
 }

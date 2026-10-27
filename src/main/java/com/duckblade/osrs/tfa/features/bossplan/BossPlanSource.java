@@ -3,6 +3,7 @@ package com.duckblade.osrs.tfa.features.bossplan;
 import com.duckblade.osrs.tfa.TfaConfig;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -41,9 +42,8 @@ public class BossPlanSource
 
 	public List<PlannedBoss> getLocalPlan()
 	{
-		return Stream.of(config.bossPlan1(), config.bossPlan2(), config.bossPlan3())
-			.filter(b -> b != PlannedBoss.NONE)
-			.distinct()
+		return Stream.of(config.bossPlan1().getBoss(), config.bossPlan2().getBoss(), config.bossPlan3().getBoss())
+			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 	}
 }

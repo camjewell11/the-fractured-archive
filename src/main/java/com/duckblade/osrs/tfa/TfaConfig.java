@@ -1,6 +1,6 @@
 package com.duckblade.osrs.tfa;
 
-import com.duckblade.osrs.tfa.features.bossplan.PlannedBoss;
+import com.duckblade.osrs.tfa.features.bossplan.BossChoice;
 import com.duckblade.osrs.tfa.features.hporbs.HpOrbMode;
 import com.duckblade.osrs.tfa.features.updatenotifier.UpdateNotifier;
 import net.runelite.client.config.Config;
@@ -132,38 +132,38 @@ public interface TfaConfig extends Config
 
 	@ConfigItem(
 		keyName = "bossPlan1",
-		name = "Boss 1",
-		description = "A boss your party intends to run, advertised on the lobby board while you lead a party.",
+		name = "First Boss",
+		description = "Ezekiel or Bork, advertised on the lobby board while you lead a party.",
 		position = 1,
 		section = SECTION_BOSS_PLAN
 	)
-	default PlannedBoss bossPlan1()
+	default BossChoice.First bossPlan1()
 	{
-		return PlannedBoss.NONE;
+		return BossChoice.First.NONE;
 	}
 
 	@ConfigItem(
 		keyName = "bossPlan2",
-		name = "Boss 2",
-		description = "A boss your party intends to run, advertised on the lobby board while you lead a party.",
+		name = "Second Boss",
+		description = "Dreadnoth the Jellied or Moia, advertised on the lobby board while you lead a party.",
 		position = 2,
 		section = SECTION_BOSS_PLAN
 	)
-	default PlannedBoss bossPlan2()
+	default BossChoice.Second bossPlan2()
 	{
-		return PlannedBoss.NONE;
+		return BossChoice.Second.NONE;
 	}
 
 	@ConfigItem(
 		keyName = "bossPlan3",
-		name = "Boss 3",
-		description = "A boss your party intends to run, advertised on the lobby board while you lead a party.",
+		name = "Third Boss",
+		description = "Xarth or Dagon'hai Elder, advertised on the lobby board while you lead a party.",
 		position = 3,
 		section = SECTION_BOSS_PLAN
 	)
-	default PlannedBoss bossPlan3()
+	default BossChoice.Third bossPlan3()
 	{
-		return PlannedBoss.NONE;
+		return BossChoice.Third.NONE;
 	}
 
 	// hidden
